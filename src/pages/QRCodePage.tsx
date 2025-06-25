@@ -1,4 +1,3 @@
-
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +18,7 @@ const QRCodePage = () => {
   const [textSize, setTextSize] = useState([16]);
   const [qrColor, setQrColor] = useState("#000000");
   const [bgColor, setBgColor] = useState("#FFFFFF");
+  const [fontColor, setFontColor] = useState("#000000");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
   const restaurant = {
@@ -96,8 +96,8 @@ const QRCodePage = () => {
         ctx.lineWidth = 1;
         ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
 
-        // Add text with better styling
-        ctx.fillStyle = qrColor;
+        // Add text with separate font color
+        ctx.fillStyle = fontColor;
         ctx.fillText(centerText, size / 2, size / 2);
 
         // Convert to data URL
@@ -112,7 +112,7 @@ const QRCodePage = () => {
 
   useEffect(() => {
     generateQRCodeWithText(restaurant.url, currentSize.pixels);
-  }, [restaurant.url, currentSize.pixels, centerText, textSize, qrColor, bgColor]);
+  }, [restaurant.url, currentSize.pixels, centerText, textSize, qrColor, bgColor, fontColor]);
 
   const handleDownload = () => {
     if (qrCodeUrl) {
@@ -293,6 +293,27 @@ const QRCodePage = () => {
                   </div>
                 )}
 
+                {/* Font Color */}
+                {centerText && (
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">Font Color</Label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={fontColor}
+                        onChange={(e) => setFontColor(e.target.value)}
+                        className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
+                      />
+                      <Input
+                        value={fontColor}
+                        onChange={(e) => setFontColor(e.target.value)}
+                        placeholder="#000000"
+                        className="flex-1 text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* QR Color */}
                 <div className="space-y-3">
                   <Label className="text-sm font-medium">QR Code Color</Label>
@@ -336,28 +357,28 @@ const QRCodePage = () => {
                   <Label className="text-sm font-medium">Quick Presets</Label>
                   <div className="grid grid-cols-4 gap-2">
                     <button
-                      onClick={() => { setQrColor('#000000'); setBgColor('#FFFFFF'); }}
+                      onClick={() => { setQrColor('#000000'); setBgColor('#FFFFFF'); setFontColor('#000000'); }}
                       className="w-full h-8 rounded border border-gray-300 bg-white relative"
                       title="Classic"
                     >
                       <div className="absolute inset-1 bg-black rounded-sm"></div>
                     </button>
                     <button
-                      onClick={() => { setQrColor('#FFFFFF'); setBgColor('#000000'); }}
+                      onClick={() => { setQrColor('#FFFFFF'); setBgColor('#000000'); setFontColor('#FFFFFF'); }}
                       className="w-full h-8 rounded border border-gray-300 bg-black relative"
                       title="Inverted"
                     >
                       <div className="absolute inset-1 bg-white rounded-sm"></div>
                     </button>
                     <button
-                      onClick={() => { setQrColor('#1f2937'); setBgColor('#f3f4f6'); }}
+                      onClick={() => { setQrColor('#1f2937'); setBgColor('#f3f4f6'); setFontColor('#1f2937'); }}
                       className="w-full h-8 rounded border border-gray-300 bg-gray-100 relative"
                       title="Gray"
                     >
                       <div className="absolute inset-1 bg-gray-800 rounded-sm"></div>
                     </button>
                     <button
-                      onClick={() => { setQrColor('#dc2626'); setBgColor('#FFFFFF'); }}
+                      onClick={() => { setQrColor('#dc2626'); setBgColor('#FFFFFF'); setFontColor('#dc2626'); }}
                       className="w-full h-8 rounded border border-gray-300 bg-white relative"
                       title="Red"
                     >
