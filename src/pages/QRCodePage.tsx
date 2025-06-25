@@ -5,28 +5,125 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { QrCode, Download, Share2, Printer, ExternalLink } from "lucide-react";
 import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import QRCodeGenerator from "qrcode";
 
 const QRCodePage = () => {
   const { id } = useParams();
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [selectedSize, setSelectedSize] = useState("Medium");
   
   const restaurant = {
     id: 1,
     name: "Pizza Palace",
     subtitle: "Authentic Italian Pizza",
     url: `https://menu.restaurantos.com/pizza-palace-${id}`,
-    qrCodeUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
   };
+
+  const sizeOptions = [
+    { size: "Small", dimensions: "100x100px", pixels: 100, use: "Business cards" },
+    { size: "Medium", dimensions: "200x200px", pixels: 200, use: "Flyers, posters" },
+    { size: "Large", dimensions: "300x300px", pixels: 300, use: "Table tents" },
+    { size: "Extra Large", dimensions: "500x500px", pixels: 500, use: "Banners, signs" }
+  ];
+
+  const currentSize = sizeOptions.find(option => option.size === selectedSize) || sizeOptions[1];
+
+  const generateQRCode = async (url: string, size: number) => {
+    try {
+      const qrCodeDataUrl = await QRCodeGenerator.toDataURL(url, {
+        width: size,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      setQrCodeUrl(qrCodeDataUrl);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+    }
+  };
+
+  useEffect(() => {
+    generateQRCode(restaurant.url, currentSize.pixels);
+  }, [restaurant.url, currentSize.pixels]);
 
   const handleDownload = () => {
-    console.log("Downloading QR code...");
+    if (qrCodeUrl) {
+      const link = document.createElement('a');
+      link.download = `qr-code-${restaurant.name.toLowerCase().replace(/\s+/g, '-')}-${selectedSize.toLowerCase()}.png`;
+      link.href = qrCodeUrl;
+      link.click();
+    }
   };
 
-  const handleShare = () => {
-    console.log("Sharing QR code...");
+  const handleShare = async () => {
+    if (navigator.share && qrCodeUrl) {
+      try {
+        const response = await fetch(qrCodeUrl);
+        const blob = await response.blob();
+        const file = new File([blob], `qr-code-${restaurant.name}.png`, { type: 'image/png' });
+        
+        await navigator.share({
+          title: `QR Code for ${restaurant.name}`,
+          text: `Scan this QR code to view the menu for ${restaurant.name}`,
+          files: [file]
+        });
+      } catch (error) {
+        console.log('Error sharing:', error);
+        // Fallback: copy URL to clipboard
+        navigator.clipboard.writeText(restaurant.url);
+        alert('Menu URL copied to clipboard!');
+      }
+    } else {
+      // Fallback: copy URL to clipboard
+      navigator.clipboard.writeText(restaurant.url);
+      alert('Menu URL copied to clipboard!');
+    }
   };
 
   const handlePrint = () => {
-    window.print();
+    const printWindow = window.open('', '_blank');
+    if (printWindow && qrCodeUrl) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>QR Code - ${restaurant.name}</title>
+            <style>
+              body { 
+                display: flex; 
+                flex-direction: column; 
+                align-items: center; 
+                justify-content: center; 
+                min-height: 100vh; 
+                margin: 0; 
+                font-family: Arial, sans-serif; 
+              }
+              .qr-container { text-align: center; }
+              .restaurant-name { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+              .restaurant-subtitle { font-size: 16px; color: #666; margin-bottom: 20px; }
+              .qr-code { border: 2px solid #ddd; padding: 20px; }
+              .url { font-size: 14px; margin-top: 10px; color: #888; }
+            </style>
+          </head>
+          <body>
+            <div class="qr-container">
+              <div class="restaurant-name">${restaurant.name}</div>
+              <div class="restaurant-subtitle">${restaurant.subtitle}</div>
+              <img src="${qrCodeUrl}" alt="QR Code" class="qr-code" />
+              <div class="url">${restaurant.url}</div>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
+  const handleSizeSelect = (size: string) => {
+    setSelectedSize(size);
   };
 
   return (
@@ -49,32 +146,40 @@ const QRCodePage = () => {
               <CardHeader>
                 <CardTitle className="flex items-center justify-center gap-2">
                   <QrCode className="w-6 h-6 text-orange-600" />
-                  QR Code
+                  QR Code - {selectedSize}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="bg-white p-8 rounded-lg border-2 border-dashed border-gray-300 mx-auto w-fit">
-                  {/* QR Code placeholder - in real app this would be generated */}
-                  <div className="w-48 h-48 bg-black flex items-center justify-center text-white text-xs">
-                    <div className="text-center">
-                      <QrCode className="w-12 h-12 mx-auto mb-2" />
-                      QR Code Preview
+                  {qrCodeUrl ? (
+                    <img 
+                      src={qrCodeUrl} 
+                      alt="QR Code" 
+                      className="mx-auto"
+                      style={{ width: currentSize.pixels, height: currentSize.pixels }}
+                    />
+                  ) : (
+                    <div className="w-48 h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                      <div className="text-center">
+                        <QrCode className="w-12 h-12 mx-auto mb-2" />
+                        Generating QR Code...
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
                 
                 <div className="space-y-3">
-                  <Button onClick={handleDownload} className="w-full bg-orange-600 hover:bg-orange-700">
+                  <Button onClick={handleDownload} className="w-full bg-orange-600 hover:bg-orange-700" disabled={!qrCodeUrl}>
                     <Download className="w-4 h-4 mr-2" />
                     Download QR Code
                   </Button>
                   
                   <div className="grid grid-cols-2 gap-3">
-                    <Button onClick={handleShare} variant="outline" className="w-full">
+                    <Button onClick={handleShare} variant="outline" className="w-full" disabled={!qrCodeUrl}>
                       <Share2 className="w-4 h-4 mr-2" />
                       Share
                     </Button>
-                    <Button onClick={handlePrint} variant="outline" className="w-full">
+                    <Button onClick={handlePrint} variant="outline" className="w-full" disabled={!qrCodeUrl}>
                       <Printer className="w-4 h-4 mr-2" />
                       Print
                     </Button>
@@ -105,7 +210,7 @@ const QRCodePage = () => {
                         readOnly
                         className="flex-1 p-2 border rounded-md bg-gray-50 text-sm"
                       />
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => window.open(restaurant.url, '_blank')}>
                         <ExternalLink className="w-4 h-4" />
                       </Button>
                     </div>
@@ -127,7 +232,7 @@ const QRCodePage = () => {
                       <li>• High resolution for clear printing</li>
                       <li>• Works with any smartphone camera</li>
                       <li>• Direct link to your digital menu</li>
-                      <li>• Trackable scan analytics (coming soon)</li>
+                      <li>• Instant download and sharing</li>
                     </ul>
                   </div>
                 </div>
@@ -142,19 +247,25 @@ const QRCodePage = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {[
-                  { size: "Small", dimensions: "100x100px", use: "Business cards" },
-                  { size: "Medium", dimensions: "200x200px", use: "Flyers, posters" },
-                  { size: "Large", dimensions: "300x300px", use: "Table tents" },
-                  { size: "Extra Large", dimensions: "500x500px", use: "Banners, signs" }
-                ].map((option) => (
-                  <div key={option.size} className="text-center p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                {sizeOptions.map((option) => (
+                  <div 
+                    key={option.size} 
+                    className={`text-center p-4 border rounded-lg transition-colors cursor-pointer ${
+                      selectedSize === option.size 
+                        ? 'border-orange-500 bg-orange-50' 
+                        : 'hover:bg-gray-50 border-gray-200'
+                    }`}
+                    onClick={() => handleSizeSelect(option.size)}
+                  >
                     <div className="bg-black text-white text-xs p-2 rounded mb-2 mx-auto w-fit">
                       QR Preview
                     </div>
                     <h4 className="font-semibold">{option.size}</h4>
                     <p className="text-sm text-gray-600">{option.dimensions}</p>
                     <p className="text-xs text-gray-500 mt-1">{option.use}</p>
+                    {selectedSize === option.size && (
+                      <Badge className="mt-2 bg-orange-600">Selected</Badge>
+                    )}
                   </div>
                 ))}
               </div>
