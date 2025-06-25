@@ -70,25 +70,34 @@ const QRCodePage = () => {
       img.onload = () => {
         ctx.drawImage(img, 0, 0, size, size);
 
-        // Add semi-transparent background for text
+        // Set up font with better styling
+        ctx.font = `bold ${textSize[0]}px Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Measure text properly
         const textMetrics = ctx.measureText(centerText);
         const textWidth = textMetrics.width;
         const textHeight = textSize[0];
-        const padding = 8;
+        const padding = Math.max(8, textSize[0] * 0.3); // Dynamic padding based on text size
         
-        ctx.fillStyle = bgColor;
-        ctx.fillRect(
-          (size - textWidth) / 2 - padding,
-          (size - textHeight) / 2 - padding,
-          textWidth + padding * 2,
-          textHeight + padding * 2
-        );
+        // Calculate background rectangle
+        const rectX = (size - textWidth) / 2 - padding;
+        const rectY = (size - textHeight) / 2 - padding;
+        const rectWidth = textWidth + padding * 2;
+        const rectHeight = textHeight + padding * 2;
 
-        // Add text
+        // Add background with rounded corners
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+
+        // Add border around text background for better contrast
+        ctx.strokeStyle = qrColor;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
+
+        // Add text with better styling
         ctx.fillStyle = qrColor;
-        ctx.font = `${textSize[0]}px Arial, sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
         ctx.fillText(centerText, size / 2, size / 2);
 
         // Convert to data URL
