@@ -24,12 +24,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     removeToken();
     setIsAuthenticated(false);
+    window.location.href = '/login';
   };
 
   useEffect(() => {
     checkAuth();
-    // Check token validity every minute
-    const interval = setInterval(checkAuth, 60000);
+    // Check token validity every 30 seconds for better real-time detection
+    const interval = setInterval(checkAuth, 30000);
     return () => clearInterval(interval);
   }, []);
 

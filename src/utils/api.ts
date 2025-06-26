@@ -37,7 +37,7 @@ export const isTokenValid = (): boolean => {
   return true;
 };
 
-// API request wrapper
+// API request wrapper for JSON data
 export const apiRequest = async (
   endpoint: string,
   options: RequestInit = {}
@@ -59,6 +59,36 @@ export const apiRequest = async (
       ...defaultHeaders,
       ...options.headers,
     },
+  };
+  
+  const response = await fetch(url, config);
+  
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.statusText}`);
+  }
+  
+  return response.json();
+};
+
+// API request wrapper for form data (file uploads)
+export const apiFormRequest = async (
+  endpoint: string,
+  formData: FormData,
+  method: string = 'POST'
+): Promise<any> => {
+  const url = `${API_BASE_URL}${endpoint}`;
+  const token = getToken();
+  
+  const headers: HeadersInit = {};
+  
+  if (token && isTokenValid()) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  
+  const config: RequestInit = {
+    method,
+    headers,
+    body: formData,
   };
   
   const response = await fetch(url, config);
@@ -97,14 +127,8 @@ export const authAPI = {
 export const restaurantAPI = {
   getAll: () => apiRequest('/api/restaurants'),
   getById: (id: string) => apiRequest(`/api/restaurants/${id}`),
-  create: (restaurantData: any) => apiRequest('/api/restaurants', {
-    method: 'POST',
-    body: JSON.stringify(restaurantData),
-  }),
-  update: (id: string, restaurantData: any) => apiRequest(`/api/restaurants/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(restaurantData),
-  }),
+  create: (restaurantData: FormData) => apiFormRequest('/api/restaurants', restaurantData, 'POST'),
+  update: (id: string, restaurantData: FormData) => apiFormRequest(`/api/restaurants/${id}`, restaurantData, 'PUT'),
   delete: (id: string) => apiRequest(`/api/restaurants/${id}`, {
     method: 'DELETE',
   }),

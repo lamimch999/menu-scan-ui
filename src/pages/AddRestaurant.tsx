@@ -8,19 +8,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Upload, Save } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { restaurantAPI } from "@/utils/api";
+import { useNavigate } from "react-router-dom";
 
 const AddRestaurant = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
     subtitle: "",
-    timing: "",
+    operatingHours: "",
     phone: "",
     description: "",
     address: "",
-    logo: null,
-    cover: null
+    logo: null as File | null,
+    coverImage: null as File | null
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -31,7 +35,7 @@ const AddRestaurant = () => {
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'cover') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'coverImage') => {
     const file = e.target.files?.[0];
     if (file) {
       setFormData(prev => ({
@@ -41,13 +45,45 @@ const AddRestaurant = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Restaurant Added Successfully!",
-      description: `${formData.name} has been added to your restaurants.`,
-    });
-    console.log("Restaurant data:", formData);
+    setIsLoading(true);
+
+    try {
+      const submitData = new FormData();
+      submitData.append('name', formData.name);
+      submitData.append('slug', formData.slug);
+      submitData.append('subtitle', formData.subtitle);
+      submitData.append('operatingHours', formData.operatingHours);
+      submitData.append('phone', formData.phone);
+      submitData.append('description', formData.description);
+      submitData.append('address', formData.address);
+      
+      if (formData.logo) {
+        submitData.append('logo', formData.logo);
+      }
+      if (formData.coverImage) {
+        submitData.append('coverImage', formData.coverImage);
+      }
+
+      await restaurantAPI.create(submitData);
+      
+      toast({
+        title: "Restaurant Added Successfully!",
+        description: `${formData.name} has been added to your restaurants.`,
+      });
+      
+      navigate('/my-restaurants');
+    } catch (error) {
+      console.error('Error creating restaurant:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create restaurant. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -106,11 +142,11 @@ const AddRestaurant = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="timing">Operating Hours</Label>
+                  <Label htmlFor="operatingHours">Operating Hours</Label>
                   <Input
-                    id="timing"
-                    name="timing"
-                    value={formData.timing}
+                    id="operatingHours"
+                    name="operatingHours"
+                    value={formData.operatingHours}
                     onChange={handleInputChange}
                     placeholder="e.g., 9:00 AM - 10:00 PM"
                   />
@@ -157,7 +193,9 @@ const AddRestaurant = () => {
                   <Label htmlFor="logo">Restaurant Logo</Label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-orange-400 transition-colors">
                     <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 mb-2">Click to upload logo</p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {formData.logo ? formData.logo.name : "Click to upload logo"}
+                    </p>
                     <Input
                       id="logo"
                       type="file"
@@ -179,12 +217,14 @@ const AddRestaurant = () => {
                   <Label htmlFor="cover">Cover Image</Label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-orange-400 transition-colors">
                     <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 mb-2">Click to upload cover</p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {formData.coverImage ? formData.coverImage.name : "Click to upload cover"}
+                    </p>
                     <Input
                       id="cover"
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleFileChange(e, 'cover')}
+                      onChange={(e) => handleFileChange(e, 'coverImage')}
                       className="hidden"
                     />
                     <Button
@@ -199,12 +239,12 @@ const AddRestaurant = () => {
               </div>
 
               <div className="flex justify-end gap-4 pt-6">
-                <Button type="button" variant="outline">
+                <Button type="button" variant="outline" onClick={() => navigate('/my-restaurants')}>
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-orange-600 hover:bg-orange-700">
+                <Button type="submit" className="bg-orange-600 hover:bg-orange-700" disabled={isLoading}>
                   <Save className="w-4 h-4 mr-2" />
-                  Add Restaurant
+                  {isLoading ? "Adding..." : "Add Restaurant"}
                 </Button>
               </div>
             </form>

@@ -4,10 +4,12 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, QrCode, Edit, Eye, MapPin, Clock, Phone, Trash2 } from "lucide-react";
+import { Menu, QrCode, Edit, MapPin, Clock, Phone, Trash2, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { restaurantAPI, getImageUrl } from "@/utils/api";
+import { useAuth } from "@/contexts/AuthContext";
+import EditRestaurantDialog from "@/components/restaurant/EditRestaurantDialog";
 
 interface Restaurant {
   _id: string;
@@ -25,7 +27,9 @@ interface Restaurant {
 const MyRestaurants = () => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
   const { toast } = useToast();
+  const { logout } = useAuth();
 
   const fetchRestaurants = async () => {
     try {
@@ -61,6 +65,15 @@ const MyRestaurants = () => {
     }
   };
 
+  const handleEdit = (restaurant: Restaurant) => {
+    setEditingRestaurant(restaurant);
+  };
+
+  const handleEditSuccess = () => {
+    setEditingRestaurant(null);
+    fetchRestaurants();
+  };
+
   useEffect(() => {
     fetchRestaurants();
   }, []);
@@ -69,12 +82,18 @@ const MyRestaurants = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="border-b bg-white shadow-sm">
-          <div className="flex items-center gap-4 p-4">
-            <SidebarTrigger />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">My Restaurants</h1>
-              <p className="text-gray-600">Manage your restaurant locations</p>
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">My Restaurants</h1>
+                <p className="text-gray-600">Manage your restaurant locations</p>
+              </div>
             </div>
+            <Button variant="outline" onClick={logout} className="text-red-600 hover:text-red-700">
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
           </div>
         </div>
         <div className="p-6">
@@ -89,12 +108,18 @@ const MyRestaurants = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="border-b bg-white shadow-sm">
-        <div className="flex items-center gap-4 p-4">
-          <SidebarTrigger />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Restaurants</h1>
-            <p className="text-gray-600">Manage your restaurant locations</p>
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">My Restaurants</h1>
+              <p className="text-gray-600">Manage your restaurant locations</p>
+            </div>
           </div>
+          <Button variant="outline" onClick={logout} className="text-red-600 hover:text-red-700">
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
+          </Button>
         </div>
       </div>
 
@@ -181,6 +206,7 @@ const MyRestaurants = () => {
                       variant="outline" 
                       size="sm" 
                       className="hover:bg-green-50 hover:border-green-300"
+                      onClick={() => handleEdit(restaurant)}
                     >
                       <Edit className="w-4 h-4 mr-1" />
                       Edit
@@ -202,6 +228,14 @@ const MyRestaurants = () => {
           </div>
         )}
       </div>
+
+      {editingRestaurant && (
+        <EditRestaurantDialog
+          restaurant={editingRestaurant}
+          onClose={() => setEditingRestaurant(null)}
+          onSuccess={handleEditSuccess}
+        />
+      )}
     </div>
   );
 };
