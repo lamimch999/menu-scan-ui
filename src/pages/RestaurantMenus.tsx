@@ -6,20 +6,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, DollarSign } from "lucide-react";
-import { useState } from "react";
+import { Plus, Edit, Trash2, DollarSign, Upload, X } from "lucide-react";
+import { useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 const RestaurantMenus = () => {
   const { id } = useParams();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [newCategory, setNewCategory] = useState("");
   const [newItem, setNewItem] = useState({
     name: "",
     description: "",
     price: "",
-    categoryId: ""
+    categoryId: "",
+    image: ""
   });
 
   const [categories, setCategories] = useState([
@@ -27,27 +29,46 @@ const RestaurantMenus = () => {
       id: 1,
       name: "Appetizers",
       items: [
-        { id: 1, name: "Garlic Bread", description: "Fresh baked bread with garlic butter", price: "$6.99" },
-        { id: 2, name: "Mozzarella Sticks", description: "Crispy breaded mozzarella", price: "$8.99" }
+        { id: 1, name: "Garlic Bread", description: "Fresh baked bread with garlic butter", price: "$6.99", image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=300&h=200&fit=crop" },
+        { id: 2, name: "Mozzarella Sticks", description: "Crispy breaded mozzarella", price: "$8.99", image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=300&h=200&fit=crop" }
       ]
     },
     {
       id: 2,
       name: "Main Dishes",
       items: [
-        { id: 3, name: "Margherita Pizza", description: "Classic tomato, mozzarella, and basil", price: "$14.99" },
-        { id: 4, name: "Pepperoni Pizza", description: "Pepperoni with mozzarella cheese", price: "$16.99" }
+        { id: 3, name: "Margherita Pizza", description: "Classic tomato, mozzarella, and basil", price: "$14.99", image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=300&h=200&fit=crop" },
+        { id: 4, name: "Pepperoni Pizza", description: "Pepperoni with mozzarella cheese", price: "$16.99", image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=300&h=200&fit=crop" }
       ]
     },
     {
       id: 3,
       name: "Beverages",
       items: [
-        { id: 5, name: "Coca Cola", description: "Refreshing soft drink", price: "$2.99" },
-        { id: 6, name: "Fresh Orange Juice", description: "Freshly squeezed orange juice", price: "$4.99" }
+        { id: 5, name: "Coca Cola", description: "Refreshing soft drink", price: "$2.99", image: "" },
+        { id: 6, name: "Fresh Orange Juice", description: "Freshly squeezed orange juice", price: "$4.99", image: "" }
       ]
     }
   ]);
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setNewItem({ ...newItem, image: result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setNewItem({ ...newItem, image: "" });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const addCategory = () => {
     if (!newCategory.trim()) return;
@@ -77,7 +98,8 @@ const RestaurantMenus = () => {
             id: Date.now(),
             name: newItem.name,
             description: newItem.description,
-            price: newItem.price
+            price: newItem.price,
+            image: newItem.image
           }]
         };
       }
@@ -85,7 +107,10 @@ const RestaurantMenus = () => {
     });
     
     setCategories(updatedCategories);
-    setNewItem({ name: "", description: "", price: "", categoryId: "" });
+    setNewItem({ name: "", description: "", price: "", categoryId: "", image: "" });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
     toast({
       title: "Item Added",
       description: `${newItem.name} has been added to the menu.`,
@@ -140,7 +165,7 @@ const RestaurantMenus = () => {
                   Add Item
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>Add New Menu Item</DialogTitle>
                 </DialogHeader>
@@ -161,6 +186,51 @@ const RestaurantMenus = () => {
                       ))}
                     </select>
                   </div>
+                  
+                  <div>
+                    <Label htmlFor="item-image">Item Image</Label>
+                    <div className="space-y-2">
+                      {newItem.image ? (
+                        <div className="relative">
+                          <img 
+                            src={newItem.image} 
+                            alt="Preview" 
+                            className="w-full h-32 object-cover rounded-md border"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-2 right-2"
+                            onClick={removeImage}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="border-2 border-dashed border-gray-300 rounded-md p-4 text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <p className="text-sm text-gray-500 mb-2">Upload an image</p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            Choose File
+                          </Button>
+                        </div>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <Label htmlFor="item-name">Item Name</Label>
                     <Input
@@ -224,7 +294,16 @@ const RestaurantMenus = () => {
                   <div className="divide-y">
                     {category.items.map((item) => (
                       <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          {item.image && (
+                            <div className="flex-shrink-0">
+                              <img 
+                                src={item.image} 
+                                alt={item.name}
+                                className="w-16 h-16 object-cover rounded-md border"
+                              />
+                            </div>
+                          )}
                           <div className="flex-1">
                             <h4 className="font-semibold text-gray-900">{item.name}</h4>
                             <p className="text-gray-600 text-sm mt-1">{item.description}</p>
