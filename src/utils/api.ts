@@ -182,6 +182,23 @@ export const menuAPI = {
     }),
 };
 
+// Client API for public restaurant access
+export const clientAPI = {
+  // Get restaurant and menu data by slug
+  getRestaurantBySlug: (slug: string) => apiRequest(`/api/client/${slug}`),
+  
+  // Create order
+  createOrder: (restaurantId: string, orderData: {
+    items: Array<{ name: string; quantity: number }>;
+    totalAmount: number;
+    tableNumber: number;
+    status?: string;
+  }) => apiRequest(`/api/client/${restaurantId}/orders`, {
+    method: 'POST',
+    body: JSON.stringify(orderData),
+  }),
+};
+
 // Helper function to get image URL
 export const getImageUrl = (filename: string): string => {
   return `${API_BASE_URL}/uploads/restaurant/${filename}`;

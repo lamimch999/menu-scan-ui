@@ -16,6 +16,7 @@ import Transactions from "./pages/Transactions";
 import AccountSettings from "./pages/AccountSettings";
 import RestaurantMenus from "./pages/RestaurantMenus";
 import QRCodePage from "./pages/QRCodePage";
+import ClientRestaurant from "./pages/ClientRestaurant";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 
@@ -30,6 +31,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/restaurants/client/:slug" element={<ClientRestaurant />} />
             <Route path="/*" element={
               <ProtectedRoute>
                 <SidebarProvider>
