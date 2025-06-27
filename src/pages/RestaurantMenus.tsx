@@ -1,106 +1,211 @@
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import MenuCategory from "@/components/menu/MenuCategory";
 import AddCategoryDialog from "@/components/menu/AddCategoryDialog";
 import AddItemDialog from "@/components/menu/AddItemDialog";
+import { menuAPI } from "@/utils/api";
+
+interface MenuItem {
+  _id: string;
+  name: string;
+  price: number;
+  available: boolean;
+  logo?: string | null;
+}
+
+interface MenuCategory {
+  _id: string;
+  category: string;
+  restaurantId: string;
+  items: MenuItem[];
+}
 
 const RestaurantMenus = () => {
   const { id } = useParams();
   const { toast } = useToast();
+  const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [categories, setCategories] = useState([
-    {
-      id: 1,
-      name: "Appetizers",
-      items: [
-        { id: 1, name: "Garlic Bread", description: "Fresh baked bread with garlic butter", price: "$6.99", image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=300&h=200&fit=crop" },
-        { id: 2, name: "Mozzarella Sticks", description: "Crispy breaded mozzarella", price: "$8.99", image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=300&h=200&fit=crop" }
-      ]
-    },
-    {
-      id: 2,
-      name: "Main Dishes",
-      items: [
-        { id: 3, name: "Margherita Pizza", description: "Classic tomato, mozzarella, and basil", price: "$14.99", image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=300&h=200&fit=crop" },
-        { id: 4, name: "Pepperoni Pizza", description: "Pepperoni with mozzarella cheese", price: "$16.99", image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=300&h=200&fit=crop" }
-      ]
-    },
-    {
-      id: 3,
-      name: "Beverages",
-      items: [
-        { id: 5, name: "Coca Cola", description: "Refreshing soft drink", price: "$2.99", image: "" },
-        { id: 6, name: "Fresh Orange Juice", description: "Freshly squeezed orange juice", price: "$4.99", image: "" }
-      ]
-    }
-  ]);
-
-  const handleAddCategory = (categoryName: string) => {
-    const newCategoryObj = {
-      id: Date.now(),
-      name: categoryName,
-      items: []
-    };
+  const fetchMenus = async () => {
+    if (!id) return;
     
-    setCategories([...categories, newCategoryObj]);
-    toast({
-      title: "Category Added",
-      description: `${categoryName} has been added to the menu.`,
-    });
+    try {
+      setLoading(true);
+      const data = await menuAPI.getAllMenus(id);
+      setCategories(data);
+    } catch (error) {
+      console.error('Error fetching menus:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load menus. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAddItem = (newItem: {
+  useEffect(() => {
+    fetchMenus();
+  }, [id]);
+
+  const handleAddCategory = async (categoryName: string) => {
+    if (!id) return;
+    
+    try {
+      await menuAPI.createMenuCategory({
+        restaurantId: id,
+        category: categoryName
+      });
+      
+      toast({
+        title: "Category Added",
+        description: `${categoryName} has been added to the menu.`,
+      });
+      
+      // Refresh the menu list
+      fetchMenus();
+    } catch (error) {
+      console.error('Error adding category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add category. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddItem = async (newItem: {
     name: string;
     description: string;
     price: string;
     categoryId: string;
     image: string;
   }) => {
-    const updatedCategories = categories.map(category => {
-      if (category.id.toString() === newItem.categoryId) {
-        return {
-          ...category,
-          items: [...category.items, {
-            id: Date.now(),
-            name: newItem.name,
-            description: newItem.description,
-            price: newItem.price,
-            image: newItem.image
-          }]
-        };
-      }
-      return category;
-    });
-    
-    setCategories(updatedCategories);
-    toast({
-      title: "Item Added",
-      description: `${newItem.name} has been added to the menu.`,
-    });
+    try {
+      const itemData = {
+        name: newItem.name,
+        price: parseFloat(newItem.price.replace('$', '')),
+        available: true,
+        logo: newItem.image || null
+      };
+      
+      await menuAPI.createMenuItems(newItem.categoryId, [itemData]);
+      
+      toast({
+        title: "Item Added",
+        description: `${newItem.name} has been added to the menu.`,
+      });
+      
+      // Refresh the menu list
+      fetchMenus();
+    } catch (error) {
+      console.error('Error adding item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add item. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleEditCategory = (category: any) => {
-    // TODO: Implement edit category functionality
-    console.log("Edit category:", category);
+  const handleEditCategory = async (category: MenuCategory, newName: string) => {
+    try {
+      await menuAPI.updateMenuCategory(category._id, { category: newName });
+      
+      toast({
+        title: "Category Updated",
+        description: `Category has been updated to ${newName}.`,
+      });
+      
+      // Refresh the menu list
+      fetchMenus();
+    } catch (error) {
+      console.error('Error updating category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update category. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteCategory = (categoryId: number) => {
-    // TODO: Implement delete category functionality
-    console.log("Delete category:", categoryId);
+  const handleDeleteCategory = async (categoryId: string) => {
+    try {
+      await menuAPI.deleteMenuCategory(categoryId);
+      
+      toast({
+        title: "Category Deleted",
+        description: "Category has been deleted successfully.",
+      });
+      
+      // Refresh the menu list
+      fetchMenus();
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete category. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleEditItem = (item: any) => {
-    // TODO: Implement edit item functionality
-    console.log("Edit item:", item);
+  const handleEditItem = async (item: MenuItem, menuId: string, updatedData: {name: string; price: number; available: boolean; logo?: string}) => {
+    try {
+      await menuAPI.updateMenuItem(menuId, item._id, updatedData);
+      
+      toast({
+        title: "Item Updated",
+        description: `${updatedData.name} has been updated successfully.`,
+      });
+      
+      // Refresh the menu list
+      fetchMenus();
+    } catch (error) {
+      console.error('Error updating item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update item. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteItem = (itemId: number) => {
-    // TODO: Implement delete item functionality
-    console.log("Delete item:", itemId);
+  const handleDeleteItem = async (itemId: string) => {
+    try {
+      await menuAPI.deleteMenuItem(itemId);
+      
+      toast({
+        title: "Item Deleted",
+        description: "Item has been deleted successfully.",
+      });
+      
+      // Refresh the menu list
+      fetchMenus();
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete item. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading menus...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -123,16 +228,23 @@ const RestaurantMenus = () => {
 
       <div className="p-6">
         <div className="space-y-6">
-          {categories.map((category) => (
-            <MenuCategory
-              key={category.id}
-              category={category}
-              onEditCategory={handleEditCategory}
-              onDeleteCategory={handleDeleteCategory}
-              onEditItem={handleEditItem}
-              onDeleteItem={handleDeleteItem}
-            />
-          ))}
+          {categories.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">No menu categories found.</p>
+              <p className="text-gray-400">Start by adding a category to organize your menu items.</p>
+            </div>
+          ) : (
+            categories.map((category) => (
+              <MenuCategory
+                key={category._id}
+                category={category}
+                onEditCategory={handleEditCategory}
+                onDeleteCategory={handleDeleteCategory}
+                onEditItem={handleEditItem}
+                onDeleteItem={handleDeleteItem}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>

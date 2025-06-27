@@ -4,24 +4,48 @@ import { Edit, Trash2, DollarSign } from "lucide-react";
 
 interface MenuItemProps {
   item: {
-    id: number;
+    _id: string;
     name: string;
-    description: string;
-    price: string;
-    image?: string;
+    price: number;
+    available: boolean;
+    logo?: string | null;
   };
-  onEdit: (item: any) => void;
-  onDelete: (itemId: number) => void;
+  menuId: string;
+  onEdit: (item: any, menuId: string, updatedData: {name: string; price: number; available: boolean; logo?: string}) => void;
+  onDelete: (itemId: string) => void;
 }
 
-const MenuItem = ({ item, onEdit, onDelete }: MenuItemProps) => {
+const MenuItem = ({ item, menuId, onEdit, onDelete }: MenuItemProps) => {
+  const handleEdit = () => {
+    const newName = prompt('Enter new item name:', item.name);
+    if (newName && newName.trim() && newName !== item.name) {
+      const newPriceStr = prompt('Enter new price:', item.price.toString());
+      const newPrice = parseFloat(newPriceStr || item.price.toString());
+      
+      if (!isNaN(newPrice)) {
+        onEdit(item, menuId, {
+          name: newName.trim(),
+          price: newPrice,
+          available: item.available,
+          logo: item.logo || undefined
+        });
+      }
+    }
+  };
+
+  const handleDelete = () => {
+    if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
+      onDelete(item._id);
+    }
+  };
+
   return (
     <div className="p-4 hover:bg-gray-50 transition-colors">
       <div className="flex items-center gap-4">
-        {item.image && (
+        {item.logo && (
           <div className="flex-shrink-0">
             <img 
-              src={item.image} 
+              src={item.logo} 
               alt={item.name}
               className="w-16 h-16 object-cover rounded-md border"
             />
@@ -29,22 +53,30 @@ const MenuItem = ({ item, onEdit, onDelete }: MenuItemProps) => {
         )}
         <div className="flex-1">
           <h4 className="font-semibold text-gray-900">{item.name}</h4>
-          <p className="text-gray-600 text-sm mt-1">{item.description}</p>
+          <div className="flex items-center gap-2 mt-1">
+            <span className={`text-xs px-2 py-1 rounded-full ${
+              item.available 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-red-100 text-red-800'
+            }`}>
+              {item.available ? 'Available' : 'Unavailable'}
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1 text-green-600 font-semibold">
             <DollarSign className="w-4 h-4" />
-            {item.price}
+            {item.price.toFixed(2)}
           </div>
           <div className="flex gap-1">
-            <Button variant="ghost" size="sm" onClick={() => onEdit(item)}>
+            <Button variant="ghost" size="sm" onClick={handleEdit}>
               <Edit className="w-4 h-4" />
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
               className="text-red-600 hover:text-red-700"
-              onClick={() => onDelete(item.id)}
+              onClick={handleDelete}
             >
               <Trash2 className="w-4 h-4" />
             </Button>

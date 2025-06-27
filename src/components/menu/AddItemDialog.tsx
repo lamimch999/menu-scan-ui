@@ -8,7 +8,7 @@ import { Plus, Upload, X } from "lucide-react";
 import { useState, useRef } from "react";
 
 interface AddItemDialogProps {
-  categories: Array<{ id: number; name: string }>;
+  categories: Array<{ _id: string; category: string }>;
   onAddItem: (item: {
     name: string;
     description: string;
@@ -49,7 +49,7 @@ const AddItemDialog = ({ categories, onAddItem }: AddItemDialogProps) => {
   };
 
   const handleAddItem = () => {
-    if (!newItem.name.trim() || !newItem.categoryId) return;
+    if (!newItem.name.trim() || !newItem.categoryId || !newItem.price.trim()) return;
     onAddItem(newItem);
     setNewItem({ name: "", description: "", price: "", categoryId: "", image: "" });
     if (fileInputRef.current) {
@@ -81,8 +81,8 @@ const AddItemDialog = ({ categories, onAddItem }: AddItemDialogProps) => {
             >
               <option value="">Select a category</option>
               {categories.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
+                <option key={category._id} value={category._id}>
+                  {category.category}
                 </option>
               ))}
             </select>
@@ -142,7 +142,7 @@ const AddItemDialog = ({ categories, onAddItem }: AddItemDialogProps) => {
             />
           </div>
           <div>
-            <Label htmlFor="item-description">Description</Label>
+            <Label htmlFor="item-description">Description (Optional)</Label>
             <Textarea
               id="item-description"
               value={newItem.description}
@@ -154,12 +154,14 @@ const AddItemDialog = ({ categories, onAddItem }: AddItemDialogProps) => {
             <Label htmlFor="item-price">Price</Label>
             <Input
               id="item-price"
+              type="number"
+              step="0.01"
               value={newItem.price}
               onChange={(e) => setNewItem({...newItem, price: e.target.value})}
-              placeholder="e.g., $12.99"
+              placeholder="12.99"
             />
           </div>
-          <Button onClick={handleAddItem} className="w-full">
+          <Button onClick={handleAddItem} className="w-full" disabled={!newItem.name.trim() || !newItem.categoryId || !newItem.price.trim()}>
             Add Item
           </Button>
         </div>

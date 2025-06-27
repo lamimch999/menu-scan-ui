@@ -1,4 +1,3 @@
-
 import { API_BASE_URL } from '../config/env';
 
 // Token management
@@ -132,6 +131,55 @@ export const restaurantAPI = {
   delete: (id: string) => apiRequest(`/api/restaurants/${id}`, {
     method: 'DELETE',
   }),
+};
+
+// Menu API
+export const menuAPI = {
+  // Get all menus for a restaurant
+  getAllMenus: (restaurantId: string) => apiRequest(`/api/menu/${restaurantId}`),
+  
+  // Get a specific menu item
+  getMenuItem: (menuId: string, itemId: string) => apiRequest(`/api/menu/items/${menuId}/${itemId}`),
+  
+  // Create a new menu category
+  createMenuCategory: (categoryData: { restaurantId: string; category: string }) => 
+    apiRequest('/api/menu/create', {
+      method: 'POST',
+      body: JSON.stringify(categoryData),
+    }),
+  
+  // Create menu items
+  createMenuItems: (menuId: string, items: Array<{name: string; price: number; available: boolean; logo?: string}>) => 
+    apiRequest(`/api/menu/items/${menuId}`, {
+      method: 'POST',
+      body: JSON.stringify({ items }),
+    }),
+  
+  // Update menu category
+  updateMenuCategory: (menuId: string, categoryData: { category: string }) => 
+    apiRequest(`/api/menu/${menuId}`, {
+      method: 'PUT',
+      body: JSON.stringify(categoryData),
+    }),
+  
+  // Update menu item
+  updateMenuItem: (menuId: string, itemId: string, itemData: {name: string; price: number; available: boolean; logo?: string}) => 
+    apiRequest(`/api/menu/items/${menuId}/${itemId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ items: [itemData] }),
+    }),
+  
+  // Delete menu category
+  deleteMenuCategory: (menuId: string) => 
+    apiRequest(`/api/menu/${menuId}`, {
+      method: 'DELETE',
+    }),
+  
+  // Delete menu item
+  deleteMenuItem: (itemId: string) => 
+    apiRequest(`/api/menu/items/${itemId}`, {
+      method: 'DELETE',
+    }),
 };
 
 // Helper function to get image URL

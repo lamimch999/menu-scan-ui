@@ -4,22 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import MenuItem from "./MenuItem";
 
+interface MenuItemType {
+  _id: string;
+  name: string;
+  price: number;
+  available: boolean;
+  logo?: string | null;
+}
+
 interface MenuCategoryProps {
   category: {
-    id: number;
-    name: string;
-    items: Array<{
-      id: number;
-      name: string;
-      description: string;
-      price: string;
-      image?: string;
-    }>;
+    _id: string;
+    category: string;
+    restaurantId: string;
+    items: MenuItemType[];
   };
-  onEditCategory: (category: any) => void;
-  onDeleteCategory: (categoryId: number) => void;
-  onEditItem: (item: any) => void;
-  onDeleteItem: (itemId: number) => void;
+  onEditCategory: (category: any, newName: string) => void;
+  onDeleteCategory: (categoryId: string) => void;
+  onEditItem: (item: MenuItemType, menuId: string, updatedData: {name: string; price: number; available: boolean; logo?: string}) => void;
+  onDeleteItem: (itemId: string) => void;
 }
 
 const MenuCategory = ({ 
@@ -29,20 +32,31 @@ const MenuCategory = ({
   onEditItem, 
   onDeleteItem 
 }: MenuCategoryProps) => {
+  const handleEditCategory = () => {
+    const newName = prompt('Enter new category name:', category.category);
+    if (newName && newName.trim() && newName !== category.category) {
+      onEditCategory(category, newName.trim());
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="bg-orange-50 border-b">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xl text-orange-900">{category.name}</CardTitle>
+          <CardTitle className="text-xl text-orange-900">{category.category}</CardTitle>
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={() => onEditCategory(category)}>
+            <Button variant="ghost" size="sm" onClick={handleEditCategory}>
               <Edit className="w-4 h-4" />
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
               className="text-red-600 hover:text-red-700"
-              onClick={() => onDeleteCategory(category.id)}
+              onClick={() => {
+                if (confirm('Are you sure you want to delete this category? This will delete all items in it.')) {
+                  onDeleteCategory(category._id);
+                }
+              }}
             >
               <Trash2 className="w-4 h-4" />
             </Button>
@@ -58,8 +72,9 @@ const MenuCategory = ({
           <div className="divide-y">
             {category.items.map((item) => (
               <MenuItem
-                key={item.id}
+                key={item._id}
                 item={item}
+                menuId={category._id}
                 onEdit={onEditItem}
                 onDelete={onDeleteItem}
               />
