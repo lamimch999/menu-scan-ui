@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { authAPI } from "@/utils/api";
+import { useAuth } from "@/contexts/AuthContext";
 import { Lock, Mail } from "lucide-react";
 
 const Login = () => {
@@ -17,6 +18,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { checkAuth } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,11 +26,16 @@ const Login = () => {
 
     try {
       await authAPI.login(credentials);
+      // Update auth state immediately after successful login
+      checkAuth();
       toast({
         title: "Login Successful",
         description: "Welcome back! Redirecting to dashboard...",
       });
-      navigate("/");
+      // Small delay to ensure auth state is updated
+      setTimeout(() => {
+        navigate("/");
+      }, 100);
     } catch (error) {
       toast({
         title: "Login Failed",
