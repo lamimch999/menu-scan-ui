@@ -1,4 +1,3 @@
-
 import { 
   BarChart3, 
   Plus, 
@@ -6,9 +5,11 @@ import {
   ShoppingBag, 
   CreditCard, 
   Settings,
-  QrCode 
+  QrCode,
+  LogOut
 } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Sidebar,
   SidebarContent,
@@ -20,7 +21,9 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   SidebarTrigger,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 
 const menuItems = [
   {
@@ -57,6 +60,11 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <Sidebar className="border-r border-orange-100">
@@ -96,6 +104,16 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="border-t border-orange-100 p-4">
+        <Button 
+          onClick={handleLogout}
+          variant="outline"
+          className="w-full flex items-center gap-2 text-gray-700 hover:text-red-600 hover:border-red-300"
+        >
+          <LogOut className="w-4 h-4" />
+          Logout
+        </Button>
+      </SidebarFooter>
     </Sidebar>
   );
 }
