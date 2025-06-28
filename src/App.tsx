@@ -12,7 +12,6 @@ import Dashboard from "./pages/Dashboard";
 import AddRestaurant from "./pages/AddRestaurant";
 import MyRestaurants from "./pages/MyRestaurants";
 import Orders from "./pages/Orders";
-import Transactions from "./pages/Transactions";
 import AccountSettings from "./pages/AccountSettings";
 import RestaurantMenus from "./pages/RestaurantMenus";
 import QRCodePage from "./pages/QRCodePage";
@@ -45,7 +44,6 @@ const App = () => (
                         <Route path="/restaurant/:id/menus" element={<RestaurantMenus />} />
                         <Route path="/restaurant/:id/qr" element={<QRCodePage />} />
                         <Route path="/orders" element={<Orders />} />
-                        <Route path="/transactions" element={<Transactions />} />
                         <Route path="/account-settings" element={<AccountSettings />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>

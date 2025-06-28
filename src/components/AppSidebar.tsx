@@ -1,9 +1,9 @@
+
 import { 
   BarChart3, 
   Plus, 
   Store, 
   ShoppingBag, 
-  CreditCard, 
   Settings,
   QrCode,
   LogOut
@@ -45,11 +45,6 @@ const menuItems = [
     title: "Orders",
     url: "/orders",
     icon: ShoppingBag,
-  },
-  {
-    title: "Transactions",
-    url: "/transactions",
-    icon: CreditCard,
   },
   {
     title: "Account Settings",

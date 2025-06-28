@@ -174,9 +174,9 @@ const RestaurantMenus = () => {
     }
   };
 
-  const handleDeleteItem = async (itemId: string) => {
+  const handleDeleteItem = async (itemId: string, menuId: string) => {
     try {
-      await menuAPI.deleteMenuItem(itemId);
+      await menuAPI.deleteMenuItem(menuId, itemId);
       
       toast({
         title: "Item Deleted",
@@ -240,7 +240,7 @@ const RestaurantMenus = () => {
                 onEditCategory={handleEditCategory}
                 onDeleteCategory={handleDeleteCategory}
                 onEditItem={handleEditItem}
-                onDeleteItem={handleDeleteItem}
+                onDeleteItem={(itemId) => handleDeleteItem(itemId, category._id)}
               />
             ))
           )}

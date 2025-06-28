@@ -122,6 +122,16 @@ export const authAPI = {
   },
 };
 
+// Admin API
+export const adminAPI = {
+  getProfile: () => apiRequest('/api/admin'),
+  updateProfile: (profileData: { email?: string; username?: string; password?: string }) => 
+    apiRequest('/api/admin', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    }),
+};
+
 // Restaurant API
 export const restaurantAPI = {
   getAll: () => apiRequest('/api/restaurants'),
@@ -203,9 +213,9 @@ export const menuAPI = {
       method: 'DELETE',
     }),
   
-  // Delete menu item
-  deleteMenuItem: (itemId: string) => 
-    apiRequest(`/api/menu/items/${itemId}`, {
+  // Delete menu item - updated route
+  deleteMenuItem: (menuId: string, itemId: string) => 
+    apiRequest(`/api/menu/items/${menuId}/${itemId}`, {
       method: 'DELETE',
     }),
 };

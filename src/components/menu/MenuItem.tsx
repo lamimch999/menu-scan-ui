@@ -15,7 +15,7 @@ interface MenuItemProps {
   };
   menuId: string;
   onEdit: (item: any, menuId: string, updatedData: {name: string; price: number; available: boolean; image?: File}) => void;
-  onDelete: (itemId: string) => void;
+  onDelete: (itemId: string, menuId: string) => void;
 }
 
 const MenuItem = ({ item, menuId, onEdit, onDelete }: MenuItemProps) => {
@@ -27,7 +27,7 @@ const MenuItem = ({ item, menuId, onEdit, onDelete }: MenuItemProps) => {
 
   const handleDelete = () => {
     if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
-      onDelete(item._id);
+      onDelete(item._id, menuId);
     }
   };
 
