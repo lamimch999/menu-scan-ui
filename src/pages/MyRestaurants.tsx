@@ -90,10 +90,6 @@ const MyRestaurants = () => {
                 <p className="text-gray-600">Manage your restaurant locations</p>
               </div>
             </div>
-            <Button variant="outline" onClick={logout} className="text-red-600 hover:text-red-700">
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
           </div>
         </div>
         <div className="p-6">
