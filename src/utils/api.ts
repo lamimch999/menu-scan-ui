@@ -122,6 +122,11 @@ export const authAPI = {
   },
 };
 
+// Dashboard API
+export const dashboardAPI = {
+  getDashboardData: () => apiRequest('/api/dashboard'),
+};
+
 // Admin API
 export const adminAPI = {
   getProfile: () => apiRequest('/api/admin'),
