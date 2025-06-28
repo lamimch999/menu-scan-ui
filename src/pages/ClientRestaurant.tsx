@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { clientAPI } from '@/utils/api';
+import { clientAPI, getRestaurantImageUrl, getItemImageUrl } from '@/utils/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -144,12 +144,12 @@ const ClientRestaurant = () => {
       {/* Restaurant Header */}
       <div className="bg-white shadow-sm">
         {restaurant.coverImage && (
-          <div className="h-48 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.coverImage})` }}></div>
+          <div className="h-48 bg-cover bg-center" style={{ backgroundImage: `url(${getRestaurantImageUrl(restaurant.coverImage)})` }}></div>
         )}
         <div className="p-4">
           <div className="flex items-start gap-4">
             {restaurant.logo && (
-              <img src={restaurant.logo} alt={restaurant.name} className="w-16 h-16 rounded-full object-cover" />
+              <img src={getRestaurantImageUrl(restaurant.logo)} alt={restaurant.name} className="w-16 h-16 rounded-full object-cover" />
             )}
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900">{restaurant.name}</h1>
@@ -185,7 +185,7 @@ const ClientRestaurant = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
                       {item.logo && (
-                        <img src={item.logo} alt={item.name} className="w-16 h-16 rounded-md object-cover" />
+                        <img src={getItemImageUrl(item.logo)} alt={item.name} className="w-16 h-16 rounded-md object-cover" />
                       )}
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900">{item.name}</h3>

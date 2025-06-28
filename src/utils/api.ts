@@ -1,3 +1,4 @@
+
 import { API_BASE_URL } from '../config/env';
 
 // Token management
@@ -148,12 +149,27 @@ export const menuAPI = {
       body: JSON.stringify(categoryData),
     }),
   
-  // Create menu items
-  createMenuItems: (menuId: string, items: Array<{name: string; price: number; available: boolean; logo?: string}>) => 
-    apiRequest(`/api/menu/items/${menuId}`, {
-      method: 'POST',
-      body: JSON.stringify({ items }),
-    }),
+  // Create menu items with image support
+  createMenuItems: (menuId: string, items: Array<{name: string; price: number; available: boolean; image?: File}>) => {
+    const formData = new FormData();
+    
+    // Add items data (without image files)
+    const itemsData = items.map(item => ({
+      name: item.name,
+      price: item.price,
+      available: item.available
+    }));
+    formData.append('items', JSON.stringify(itemsData));
+    
+    // Add image files if they exist
+    items.forEach((item, index) => {
+      if (item.image) {
+        formData.append(`itemImage_${index}`, item.image);
+      }
+    });
+    
+    return apiFormRequest(`/api/menu/items/${menuId}`, formData, 'POST');
+  },
   
   // Update menu category
   updateMenuCategory: (menuId: string, categoryData: { category: string }) => 
@@ -162,12 +178,25 @@ export const menuAPI = {
       body: JSON.stringify(categoryData),
     }),
   
-  // Update menu item
-  updateMenuItem: (menuId: string, itemId: string, itemData: {name: string; price: number; available: boolean; logo?: string}) => 
-    apiRequest(`/api/menu/items/${menuId}/${itemId}`, {
-      method: 'PUT',
-      body: JSON.stringify({ items: [itemData] }),
-    }),
+  // Update menu item with image support
+  updateMenuItem: (menuId: string, itemId: string, itemData: {name: string; price: number; available: boolean; image?: File}) => {
+    const formData = new FormData();
+    
+    // Add item data (without image file)
+    const data = {
+      name: itemData.name,
+      price: itemData.price,
+      available: itemData.available
+    };
+    formData.append('items', JSON.stringify([data]));
+    
+    // Add image file if it exists
+    if (itemData.image) {
+      formData.append('itemImage_0', itemData.image);
+    }
+    
+    return apiFormRequest(`/api/menu/items/${menuId}/${itemId}`, formData, 'PUT');
+  },
   
   // Delete menu category
   deleteMenuCategory: (menuId: string) => 
@@ -199,7 +228,16 @@ export const clientAPI = {
   }),
 };
 
-// Helper function to get image URL
+// Helper functions to get image URLs
+export const getRestaurantImageUrl = (filename: string): string => {
+  return `${API_BASE_URL}/uploads/restaurant/${filename}`;
+};
+
+export const getItemImageUrl = (filename: string): string => {
+  return `${API_BASE_URL}/uploads/item-images/${filename}`;
+};
+
+// Legacy helper function (kept for backward compatibility)
 export const getImageUrl = (filename: string): string => {
   return `${API_BASE_URL}/uploads/restaurant/${filename}`;
 };

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, X } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { getItemImageUrl } from "@/utils/api";
 
 interface EditItemDialogProps {
   isOpen: boolean;
@@ -21,7 +22,7 @@ interface EditItemDialogProps {
     name: string;
     price: number;
     available: boolean;
-    logo?: string;
+    image?: File;
   }) => void;
 }
 
@@ -32,7 +33,9 @@ const EditItemDialog = ({ isOpen, onClose, item, onEditItem }: EditItemDialogPro
     description: "",
     price: "",
     available: true,
-    image: ""
+    image: null as File | null,
+    imagePreview: "",
+    currentImage: ""
   });
 
   useEffect(() => {
@@ -42,7 +45,9 @@ const EditItemDialog = ({ isOpen, onClose, item, onEditItem }: EditItemDialogPro
         description: "",
         price: item.price.toString(),
         available: item.available,
-        image: item.logo || ""
+        image: null,
+        imagePreview: "",
+        currentImage: item.logo || ""
       });
     }
   }, [item]);
@@ -53,14 +58,14 @@ const EditItemDialog = ({ isOpen, onClose, item, onEditItem }: EditItemDialogPro
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
-        setEditData({ ...editData, image: result });
+        setEditData({ ...editData, image: file, imagePreview: result });
       };
       reader.readAsDataURL(file);
     }
   };
 
   const removeImage = () => {
-    setEditData({ ...editData, image: "" });
+    setEditData({ ...editData, image: null, imagePreview: "", currentImage: "" });
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -73,9 +78,15 @@ const EditItemDialog = ({ isOpen, onClose, item, onEditItem }: EditItemDialogPro
       name: editData.name.trim(),
       price: parseFloat(editData.price),
       available: editData.available,
-      logo: editData.image || undefined
+      image: editData.image || undefined
     });
     onClose();
+  };
+
+  const getDisplayImage = () => {
+    if (editData.imagePreview) return editData.imagePreview;
+    if (editData.currentImage) return getItemImageUrl(editData.currentImage);
+    return null;
   };
 
   return (
@@ -88,10 +99,10 @@ const EditItemDialog = ({ isOpen, onClose, item, onEditItem }: EditItemDialogPro
           <div>
             <Label htmlFor="edit-item-image">Item Image</Label>
             <div className="space-y-2">
-              {editData.image ? (
+              {getDisplayImage() ? (
                 <div className="relative">
                   <img 
-                    src={editData.image} 
+                    src={getDisplayImage()!} 
                     alt="Preview" 
                     className="w-full h-32 object-cover rounded-md border"
                   />

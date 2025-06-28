@@ -14,7 +14,7 @@ interface AddItemDialogProps {
     description: string;
     price: string;
     categoryId: string;
-    image: string;
+    image: File | null;
   }) => void;
 }
 
@@ -26,7 +26,8 @@ const AddItemDialog = ({ categories, onAddItem }: AddItemDialogProps) => {
     description: "",
     price: "",
     categoryId: "",
-    image: ""
+    image: null as File | null,
+    imagePreview: ""
   });
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,14 +36,14 @@ const AddItemDialog = ({ categories, onAddItem }: AddItemDialogProps) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
-        setNewItem({ ...newItem, image: result });
+        setNewItem({ ...newItem, image: file, imagePreview: result });
       };
       reader.readAsDataURL(file);
     }
   };
 
   const removeImage = () => {
-    setNewItem({ ...newItem, image: "" });
+    setNewItem({ ...newItem, image: null, imagePreview: "" });
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -50,8 +51,14 @@ const AddItemDialog = ({ categories, onAddItem }: AddItemDialogProps) => {
 
   const handleAddItem = () => {
     if (!newItem.name.trim() || !newItem.categoryId || !newItem.price.trim()) return;
-    onAddItem(newItem);
-    setNewItem({ name: "", description: "", price: "", categoryId: "", image: "" });
+    onAddItem({
+      name: newItem.name,
+      description: newItem.description,
+      price: newItem.price,
+      categoryId: newItem.categoryId,
+      image: newItem.image
+    });
+    setNewItem({ name: "", description: "", price: "", categoryId: "", image: null, imagePreview: "" });
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -91,10 +98,10 @@ const AddItemDialog = ({ categories, onAddItem }: AddItemDialogProps) => {
           <div>
             <Label htmlFor="item-image">Item Image</Label>
             <div className="space-y-2">
-              {newItem.image ? (
+              {newItem.imagePreview ? (
                 <div className="relative">
                   <img 
-                    src={newItem.image} 
+                    src={newItem.imagePreview} 
                     alt="Preview" 
                     className="w-full h-32 object-cover rounded-md border"
                   />

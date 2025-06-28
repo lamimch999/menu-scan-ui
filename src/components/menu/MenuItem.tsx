@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Edit, Trash2, DollarSign } from "lucide-react";
 import { useState } from "react";
 import EditItemDialog from "./EditItemDialog";
+import { getItemImageUrl } from "@/utils/api";
 
 interface MenuItemProps {
   item: {
@@ -13,14 +14,14 @@ interface MenuItemProps {
     logo?: string | null;
   };
   menuId: string;
-  onEdit: (item: any, menuId: string, updatedData: {name: string; price: number; available: boolean; logo?: string}) => void;
+  onEdit: (item: any, menuId: string, updatedData: {name: string; price: number; available: boolean; image?: File}) => void;
   onDelete: (itemId: string) => void;
 }
 
 const MenuItem = ({ item, menuId, onEdit, onDelete }: MenuItemProps) => {
   const [showEditDialog, setShowEditDialog] = useState(false);
 
-  const handleEditItem = (updatedData: {name: string; price: number; available: boolean; logo?: string}) => {
+  const handleEditItem = (updatedData: {name: string; price: number; available: boolean; image?: File}) => {
     onEdit(item, menuId, updatedData);
   };
 
@@ -37,7 +38,7 @@ const MenuItem = ({ item, menuId, onEdit, onDelete }: MenuItemProps) => {
           {item.logo && (
             <div className="flex-shrink-0">
               <img 
-                src={item.logo} 
+                src={getItemImageUrl(item.logo)} 
                 alt={item.name}
                 className="w-16 h-16 object-cover rounded-md border"
               />

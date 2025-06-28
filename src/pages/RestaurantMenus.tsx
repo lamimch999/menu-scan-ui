@@ -1,4 +1,3 @@
-
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
@@ -83,14 +82,14 @@ const RestaurantMenus = () => {
     description: string;
     price: string;
     categoryId: string;
-    image: string;
+    image: File | null;
   }) => {
     try {
       const itemData = {
         name: newItem.name,
         price: parseFloat(newItem.price.replace('$', '')),
         available: true,
-        logo: newItem.image || null
+        image: newItem.image
       };
       
       await menuAPI.createMenuItems(newItem.categoryId, [itemData]);
@@ -154,7 +153,7 @@ const RestaurantMenus = () => {
     }
   };
 
-  const handleEditItem = async (item: MenuItem, menuId: string, updatedData: {name: string; price: number; available: boolean; logo?: string}) => {
+  const handleEditItem = async (item: MenuItem, menuId: string, updatedData: {name: string; price: number; available: boolean; image?: File}) => {
     try {
       await menuAPI.updateMenuItem(menuId, item._id, updatedData);
       
