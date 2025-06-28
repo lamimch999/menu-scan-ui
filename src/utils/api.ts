@@ -1,4 +1,3 @@
-
 import { API_BASE_URL } from '../config/env';
 
 // Token management
@@ -226,6 +225,25 @@ export const clientAPI = {
     method: 'POST',
     body: JSON.stringify(orderData),
   }),
+};
+
+// Orders API for admin management
+export const ordersAPI = {
+  // Get all orders
+  getAllOrders: () => apiRequest('/api/client/orders/all'),
+  
+  // Update order status
+  updateOrderStatus: (orderId: string, status: 'pending' | 'completed' | 'cancelled') => 
+    apiRequest(`/api/client/orders/${orderId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    }),
+  
+  // Delete order
+  deleteOrder: (orderId: string) => 
+    apiRequest(`/api/client/orders/${orderId}`, {
+      method: 'DELETE',
+    }),
 };
 
 // Helper functions to get image URLs
